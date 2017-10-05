@@ -58,6 +58,12 @@ class PolicyVNetwork(Network):
 
 class NIPSPolicyVNetwork(PolicyVNetwork, NIPSNetwork):
     pass
+class EMARetinaNIPSPolicyVNetwork(PolicyVNetwork, EMARetinaNIPSNetwork):
+    pass
+class DiffRetinaNIPSPolicyVNetwork(PolicyVNetwork, DiffRetinaNIPSNetwork):
+    pass
+
+
 
 
 class NaturePolicyVNetwork(PolicyVNetwork, NatureNetwork):

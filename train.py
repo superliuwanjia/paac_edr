@@ -7,7 +7,7 @@ import copy
 
 import environment_creator
 from paac import PAACLearner
-from policy_v_network import NaturePolicyVNetwork, NIPSPolicyVNetwork
+from policy_v_network import NaturePolicyVNetwork, NIPSPolicyVNetwork, EMARetinaNIPSPolicyVNetwork, DiffRetinaNIPSPolicyVNetwork
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
@@ -62,8 +62,12 @@ def get_network_and_environment_creator(args, random_seed=3):
                     'clip_norm_type': args.clip_norm_type}
     if args.arch == 'NIPS':
         network = NIPSPolicyVNetwork
-    else:
+    elif args.arch == 'NATURE':
         network = NaturePolicyVNetwork
+    elif args.arch == 'EMARetinaNIPS':
+        network = EMARetinaNIPSPolicyVNetwork
+    elif args.arch == 'DiffRetinaNIPS':
+        network = DiffRetinaNIPSPolicyVNetwork
 
     def network_creator(name='local_learning'):
         nonlocal network_conf
@@ -90,7 +94,7 @@ def get_arg_parser():
     parser.add_argument('--gamma', default=0.99, type=float, help="Discount factor", dest="gamma")
     parser.add_argument('--max_global_steps', default=80000000, type=int, help="Max. number of training steps", dest="max_global_steps")
     parser.add_argument('--max_local_steps', default=5, type=int, help="Number of steps to gain experience from before every update.", dest="max_local_steps")
-    parser.add_argument('--arch', default='NIPS', help="Which network architecture to use: from the NIPS or NATURE paper", dest="arch")
+    parser.add_argument('--arch', default='EMARetinaNIPS', help="Which network architecture to use: from the NIPS or NATURE paper", dest="arch")
     parser.add_argument('--single_life_episodes', default=False, type=bool_arg, help="If True, training episodes will be terminated when a life is lost (for games)", dest="single_life_episodes")
     parser.add_argument('-ec', '--emulator_counts', default=32, type=int, help="The amount of emulators per agent. Default is 32.", dest="emulator_counts")
     parser.add_argument('-ew', '--emulator_workers', default=8, type=int, help="The amount of emulator workers per agent. Default is 8.", dest="emulator_workers")

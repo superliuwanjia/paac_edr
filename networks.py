@@ -1,6 +1,11 @@
+import sys
+sys.path.append("/mnt/group3/ucnn/robin/build_a_bug/EDRNN")
+
 import tensorflow as tf
 import logging
 import numpy as np
+
+from retina import *
 
 
 def flatten(_input):
@@ -149,6 +154,59 @@ class NIPSNetwork(Network):
                 _, _, fc3 = fc('fc3', flatten(conv2), 256, activation="relu")
 
                 self.output = fc3
+
+class EMARetinaNIPSNetwork(Network):
+
+    def __init__(self, conf):
+        super(EMARetinaNIPSNetwork, self).__init__(conf)
+        with tf.device(self.device):
+            with tf.name_scope(self.name):
+
+                inp_shape = self.input.get_shape().as_list() #actual input shape
+                print("input shape in network", inp_shape)
+                inp = tf.reshape(tf.transpose(self.input,[0,3,1,2]), [-1, inp_shape[3],  inp_shape[1]* inp_shape[2]])
+                retina = Retina(inp, inp_shape, is_lrcn = True)
+                retina_output = retina.get_output()
+                inp = tf.concat([retina_output, tf.reshape(inp,[-1, inp_shape[1], inp_shape[2], 1])], axis=3)
+                print(inp.get_shape().as_list())
+                _, _, conv1 = conv2d('conv1', inp, 16, 8, 3, 4)
+
+                _, _, conv2 = conv2d('conv2', conv1, 32, 4, 16, 2)
+
+                lenet_shape = conv2.get_shape().as_list()  # shape after passing through lenet
+
+                _, _, fc3 = fc('fc3', tf.reshape(conv2, [-1, 4 * lenet_shape[1] * lenet_shape[2]*lenet_shape[3]]), 256, activation="relu")
+
+
+                self.output = fc3
+
+class DiffRetinaNIPSNetwork(Network):
+
+    def __init__(self, conf):
+        super(DiffRetinaNIPSNetwork, self).__init__(conf)
+        with tf.device(self.device):
+            with tf.name_scope(self.name):
+
+                inp_shape = self.input.get_shape().as_list() #actual input shape
+                print("input shape in network", inp_shape)
+                inp = tf.reshape(tf.transpose(self.input,[0,3,1,2]), [-1, inp_shape[3],  inp_shape[1]* inp_shape[2]])
+                event = self.input 
+                event = tf.concat([event[:,:,:,0:1], event[:,:,:,1:2] - event[:,:,:,0:1],
+                event[:,:,:,2:3]-event[:,:,:,1:2],event[:,:,:,3:4]-event[:,:,:,2:3]], axis=3)
+               
+                event_reshaped = tf.reshape(tf.transpose(event, [0,3,1,2]),[-1, inp_shape[1], inp_shape[2],1]) 
+                inp = tf.concat([event_reshaped, tf.reshape(inp,[-1, inp_shape[1],inp_shape[2],1])], axis=3)
+ 
+
+                _, _, conv1 = conv2d('conv1', inp, 16, 8, 2, 4)
+
+                _, _, conv2 = conv2d('conv2', conv1, 32, 4, 16, 2)
+                lenet_shape = conv2.get_shape().as_list()  # shape after passing through lenet
+
+                _, _, fc3 = fc('fc3', tf.reshape(conv2, [-1, 4 * lenet_shape[1] * lenet_shape[2]*lenet_shape[3]]), 256, activation="relu")
+
+                self.output = fc3
+
 
 
 class NatureNetwork(Network):
