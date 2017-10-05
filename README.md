@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Efficient Parallel Methods for Deep Reinforcement Learning
 This repository contains an open source implementation of the PAAC algorithm presented in [Efficient Parallel Methods for Deep Reinforcement Learning](https://arxiv.org/abs/1705.04862).
 
